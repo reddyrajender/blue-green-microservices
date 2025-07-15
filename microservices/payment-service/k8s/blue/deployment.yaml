@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service-blue
+  labels:
+    app: payment-service
+    color: blue
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: payment-service
+      color: blue
+  template:
+    metadata:
+      labels:
+        app: payment-service
+        color: blue
+    spec:
+      containers:
+        - name: payment-service
+          image: your-ecr-url/payment-service:IMAGE_TAG
+          ports:
+            - containerPort: 3000

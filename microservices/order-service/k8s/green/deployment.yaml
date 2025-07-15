@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service-green
+  labels:
+    app: order-service
+    color: green
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: order-service
+      color: green
+  template:
+    metadata:
+      labels:
+        app: order-service
+        color: green
+    spec:
+      containers:
+        - name: order-service
+          image: your-ecr-url/order-service:IMAGE_TAG
+          ports:
+            - containerPort: 3000

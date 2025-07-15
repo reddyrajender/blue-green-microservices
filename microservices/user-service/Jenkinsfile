@@ -1,0 +1,45 @@
+pipeline {
+  agent any
+  environment {
+    IMAGE_TAG = "${env.BUILD_NUMBER}"
+    REPO = "your-ecr-url"
+    SERVICE = "user-service"
+    COLOR = "green"
+  }
+  stages {
+    stage('Checkout') {
+      steps { git url: "https://github.com/your-org/${SERVICE}.git" }
+    }
+    stage('Build & Push') {
+      steps {
+        sh '''
+          docker build -t ${REPO}/${SERVICE}:${IMAGE_TAG} .
+          aws ecr get-login-password | docker login --username AWS --password-stdin ${REPO}
+          docker push ${REPO}/${SERVICE}:${IMAGE_TAG}
+        '''
+      }
+    }
+    stage('Deploy to K8s') {
+      steps {
+        sh '''
+          sed "s|IMAGE_TAG|${IMAGE_TAG}|g" k8s/${COLOR}/deployment.yaml | kubectl apply -f -
+          kubectl apply -f k8s/${COLOR}/service.yaml
+        '''
+      }
+    }
+    stage('Update Ingress') {
+      steps { sh "kubectl apply -f k8s/ingress.yaml" }
+    }
+    stage('Smoke Test') {
+      steps { sh "curl -f http://user-service.example.com/health" }
+    }
+    stage('Cleanup Old Version') {
+      steps {
+        script {
+          def oldColor = (COLOR == 'green') ? 'blue' : 'green'
+          sh "kubectl delete -f k8s/${oldColor}"
+        }
+      }
+    }
+  }
+}

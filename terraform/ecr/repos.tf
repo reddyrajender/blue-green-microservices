@@ -13,3 +13,4 @@ resource "aws_ecr_repository" "payment" {
 resource "aws_ecr_repository" "notification" {
   name = "notification-service"
 }
+
